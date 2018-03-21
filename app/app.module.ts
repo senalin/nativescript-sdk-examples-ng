@@ -1,6 +1,7 @@
 // this import should be first in order to load some required settings (like globals and reflect-metadata)
 // >> ngmodule-config
 // >> (hide)
+require("./vendor");
 import { NativeScriptModule } from "nativescript-angular/nativescript.module";
 import { NgModule, NO_ERRORS_SCHEMA, NgModuleFactoryLoader } from "@angular/core";
 import { NativeScriptRouterModule } from "nativescript-angular/router";

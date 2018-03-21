@@ -59,6 +59,7 @@ export class ExamplesListComponent {
     public links: Array<Link>;
 
     constructor() {
+        console.log("examples list component ... ")
         this.links = [];
 
         mainMenuLinks.sort(function (a, b) {

@@ -43,6 +43,34 @@ module.exports = env => {
 
     const config = {
         mode: "development",
+        devtool: "none",
+        optimization: {
+            // runtimeChunk: 'single',
+            splitChunks: {
+                chunks: 'all',
+                cacheGroups: {
+                    vendors: false,
+                    vendor: {
+                        name: 'commons',
+                        chunks: 'initial',
+                        test: (module, chunks) => {
+                            const moduleName = module.nameForCondition ? module.nameForCondition() : '';
+                            return /[\\/]node_modules[\\/]/.test(moduleName)
+                                && !chunks.some(({ name }) => name === 'polyfills');
+                        },
+                    },
+                }
+            },
+        },
+
+        // optimization:  {
+        //     splitChunks: {
+        //         chunks: "all",
+        //         cacheGroups: {
+        //             commons: { name: "commons" }
+        //         }
+        //     }
+        // },
         context: appFullPath,
         watchOptions: {
             ignored: [
@@ -54,15 +82,15 @@ module.exports = env => {
         target: nativescriptTarget,
         entry: {
             bundle: aot ?
-                `./${nsWebpack.getAotEntryModule(appFullPath)}` :
-                `./${nsWebpack.getEntryModule(appFullPath)}`,
+            `./${nsWebpack.getAotEntryModule(appFullPath)}` :
+            `./${nsWebpack.getEntryModule(appFullPath)}`,
         },
         output: {
+            globalObject: "global",
             pathinfo: true,
             path: dist,
             libraryTarget: "commonjs2",
             filename: "[name].js",
-            globalObject: "global",
         },
         resolve: {
             extensions: [".ts", ".js", ".scss", ".css"],
@@ -88,23 +116,6 @@ module.exports = env => {
             "setImmediate": false,
             "fs": "empty",
         },
-        devtool: "none",
-        optimization: {
-            splitChunks: {
-                chunks: "all",
-                cacheGroups: {
-                    vendors: false,
-                    vendor: {
-                        name: "commons",
-                        chunks: "initial",
-                        test: (module, chunks) => {
-                            const moduleName = module.nameForCondition ? module.nameForCondition() : '';
-                            return /[\\/]node_modules[\\/]/.test(moduleName);
-                        },
-                    },
-                }
-            },
-        },
         module: {
             rules: [
                 { test: /\.html$|\.xml$/, use: "raw-loader" },
@@ -112,10 +123,10 @@ module.exports = env => {
                 // tns-core-modules reads the app.css and its imports using css-loader
                 {
                     test: /[\/|\\]app\.css$/,
-                    use: {
-                        loader: "css-loader",
-                        options: { minimize: false, url: false },
-                    }
+                        use: {
+                            loader: "css-loader",
+                                options: { minimize: false, url: false },
+                        }
                 },
                 {
                     test: /[\/|\\]app\.scss$/,
@@ -130,12 +141,10 @@ module.exports = env => {
                 { test: /\.scss$/, exclude: /[\/|\\]app\.scss$/, use: ["raw-loader", "resolve-url-loader", "sass-loader"] },
 
                 // Compile TypeScript files with ahead-of-time compiler.
-                {
-                    test: /.ts$/, use: [
-                        "nativescript-dev-webpack/moduleid-compat-loader",
-                        { loader: "@ngtools/webpack", options: ngToolsWebpackOptions },
-                    ]
-                },
+                { test: /.ts$/, use: [
+                    "nativescript-dev-webpack/moduleid-compat-loader",
+                    { loader: "@ngtools/webpack", options: ngToolsWebpackOptions },
+                ]},
             ],
         },
         plugins: [
@@ -144,7 +153,7 @@ module.exports = env => {
                 "global.TNS_WEBPACK": "true",
             }),
             // Remove all files from the out dir.
-            new CleanWebpackPlugin([`${dist}/**/*`]),
+            new CleanWebpackPlugin([ `${dist}/**/*` ]),
             // Copy native app resources to out dir.
             new CopyWebpackPlugin([
                 {
@@ -171,6 +180,7 @@ module.exports = env => {
                 Object.assign({
                     entryModule: resolve(__dirname, "app/app.module#AppModule"),
                     skipCodeGeneration: !aot,
+                    nameLazyFiles: true,
                     platformOptions: {
                         platform,
                         platforms,
